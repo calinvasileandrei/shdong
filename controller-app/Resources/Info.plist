@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleIdentifier</key>
+	<string>dev.shdong.controller</string>
+	<key>CFBundleName</key>
+	<string>Shdong</string>
+	<key>CFBundleDisplayName</key>
+	<string>shdong</string>
+	<key>CFBundleExecutable</key>
+	<string>Shdong</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>13.0</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>NSCameraUsageDescription</key>
+	<string>shdong reads the HDMI capture stick, which macOS treats as a camera, to show the other Mac's screen.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>shdong plays the other Mac's HDMI audio, which arrives as an audio input.</string>
+</dict>
+</plist>

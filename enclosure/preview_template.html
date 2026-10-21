@@ -1,0 +1,77 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>shdong keychain</title>
+<style>
+  body{margin:0;background:#16181c;color:#e8e8e8;font:13px -apple-system,system-ui,sans-serif;overflow:hidden}
+  #ui{position:absolute;top:12px;left:12px;background:#22252bcc;padding:12px 14px;border-radius:10px;width:240px}
+  #ui h1{font-size:14px;margin:0 0 4px}#ui .d{color:#9aa;margin-bottom:10px}
+  label{display:block;margin:8px 0 2px}input[type=range]{width:100%}
+  .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  button{background:#333842;color:#eee;border:0;border-radius:6px;padding:5px 8px;cursor:pointer}
+  button.on{background:#4a7bd8}
+</style></head><body>
+<div id="ui">
+  <h1>shdong keychain</h1><div class="d">__DIMS__ · drag to orbit, scroll to zoom</div>
+  <label>Case transparency</label><input id="op" type="range" min="0" max="1" step="0.01" value="0.35">
+  <label>Explode</label><input id="ex" type="range" min="0" max="1" step="0.01" value="0">
+  <div class="row">
+    <button id="bLid" class="on">Lid</button><button id="bBase" class="on">Base</button>
+    <button id="bCut">Section cut</button>
+  </div>
+  <div class="row">
+    <button data-v="iso">Iso</button><button data-v="front">Ports</button><button data-v="side">Side</button><button data-v="top">Top</button>
+  </div>
+</div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {STLLoader} from 'three/addons/loaders/STLLoader.js';
+const DATA = __DATA__, SPLIT = __SPLIT__;
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(devicePixelRatio); renderer.setSize(innerWidth, innerHeight);
+renderer.localClippingEnabled = true; document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x16181c);
+const cam = new THREE.PerspectiveCamera(35, innerWidth/innerHeight, 0.1, 1000); cam.up.set(0,0,1);
+const ctl = new OrbitControls(cam, renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x334455, 1.6));
+const dl = new THREE.DirectionalLight(0xffffff, 2.2); dl.position.set(-40,-60,80); scene.add(dl);
+const dl2 = new THREE.DirectionalLight(0xffffff, 0.8); dl2.position.set(60,40,-30); scene.add(dl2);
+const cut = new THREE.Plane(new THREE.Vector3(0,-1,0), 0);
+const style = {
+  base:{c:0xd9dde3,case:1}, lid:{c:0xd9dde3,case:1},
+  pcb:{c:0x2448b0}, metal:{c:0xc8ccd2,m:0.9,r:0.3}, button:{c:0xeeeeee},
+  chip:{c:0x1a1a1a}, led:{c:0xffffff,e:0x55ff88}, pad:{c:0xd4a640,m:0.8,r:0.35}, foam:{c:0xe0703a}, wire_tx:{c:0xe53935}, wire_rx:{c:0xfdd835}, wire_gnd:{c:0x222222},
+};
+const loader = new STLLoader(), meshes = {}, group = new THREE.Group(); scene.add(group);
+for (const [k,b64] of Object.entries(DATA)) {
+  const buf = Uint8Array.from(atob(b64), c=>c.charCodeAt(0)).buffer;
+  const geo = loader.parse(buf); geo.computeVertexNormals();
+  const s = style[k.replace(/^[ct]_/,'')];
+  const mat = new THREE.MeshStandardMaterial({color:s.c, metalness:s.m??0.05, roughness:s.r??0.55,
+    emissive:s.e??0x000000, side:THREE.DoubleSide, clippingPlanes:[]});
+  if (s.case) { mat.transparent = true; mat.depthWrite = false; }
+  const m = new THREE.Mesh(geo, mat); m.userData.base = k; meshes[k]=m; group.add(m);
+}
+const center = new THREE.Box3().setFromObject(group).getCenter(new THREE.Vector3());
+group.position.sub(center); ctl.target.set(0,0,0);
+const views = {iso:[-45,-55,40], front:[-70,0,6], side:[0,-75,8], top:[0,-1,80]};
+const setView = v => { cam.position.set(...views[v]); ctl.update(); };
+setView('iso');
+const op = document.getElementById('op'), ex = document.getElementById('ex');
+function apply(){
+  const o = 1 - +op.value, e = +ex.value;
+  for (const k of ['base','lid']) meshes[k].material.opacity = o;
+  for (const [k,m] of Object.entries(meshes))
+    m.position.z = e * ({lid:22, base:-10, foam:4, wire_tx:4, wire_rx:4, wire_gnd:4}[k] ?? (k.startsWith('t_') ? 9 : 0));
+}
+op.oninput = ex.oninput = apply; apply();
+const tog = (id,k) => { const b=document.getElementById(id); b.onclick=()=>{meshes[k].visible=!meshes[k].visible; b.classList.toggle('on');}; };
+tog('bLid','lid'); tog('bBase','base');
+document.getElementById('bCut').onclick = e => {
+  const on = e.target.classList.toggle('on');
+  for (const m of Object.values(meshes)) m.material.clippingPlanes = on ? [cut] : [];
+};
+document.querySelectorAll('[data-v]').forEach(b => b.onclick = () => setView(b.dataset.v));
+addEventListener('resize', () => { cam.aspect=innerWidth/innerHeight; cam.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
+renderer.setAnimationLoop(() => renderer.render(scene, cam));
+</script></body></html>
