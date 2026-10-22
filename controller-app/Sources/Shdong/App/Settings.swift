@@ -6,6 +6,8 @@ enum Settings {
     static let scrollPointsPerTick = "scrollPointsPerTick"
     static let autoCaptureOnClick = "autoCaptureOnClick"
     static let showLocalCursor = "showLocalCursor"
+    /// Read at launch; changing it needs a restart.
+    static let lowLatencyVideo = "lowLatencyVideo"
 
     static func registerDefaults() {
         UserDefaults.standard.register(defaults: [
@@ -13,6 +15,7 @@ enum Settings {
             scrollPointsPerTick: 12.0,
             autoCaptureOnClick: true,
             showLocalCursor: false,
+            lowLatencyVideo: true,
         ])
     }
 

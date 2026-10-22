@@ -191,7 +191,7 @@ struct ViewerRepresentable: NSViewRepresentable {
         let v = ViewerView(frame: .zero)
         v.link = link
         v.input = input
-        v.videoLayer = video.previewLayer
+        v.videoLayer = video.layer
         v.videoSize = video.videoSize
         return v
     }

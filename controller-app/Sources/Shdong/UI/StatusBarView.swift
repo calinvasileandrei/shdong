@@ -29,7 +29,8 @@ struct StatusBarView: View {
             }
             if video.status == .running {
                 Text("\(Int(video.videoSize.width))×\(Int(video.videoSize.height))"
-                     + (video.fps > 0 ? String(format: " @ %.0f", video.fps) : ""))
+                     + (video.fps > 0 ? String(format: " @ %.0f", video.fps) : "")
+                     + (video.codec.isEmpty ? "" : " \(video.codec)"))
                     .monospacedDigit()
             }
             Text(state.input.isCaptured ? "Captured · \(Settings.hotkey.short) to release" : "Click video to capture")

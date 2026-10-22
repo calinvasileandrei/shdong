@@ -5,6 +5,7 @@ struct SettingsView: View {
     @AppStorage(Settings.scrollPointsPerTick) private var scrollPointsPerTick = 12.0
     @AppStorage(Settings.autoCaptureOnClick) private var autoCapture = true
     @AppStorage(Settings.showLocalCursor) private var showLocalCursor = false
+    @AppStorage(Settings.lowLatencyVideo) private var lowLatencyVideo = true
 
     var body: some View {
         Form {
@@ -13,6 +14,7 @@ struct SettingsView: View {
             }
             Toggle("Capture when clicking the video", isOn: $autoCapture)
             Toggle("Show local cursor over the video", isOn: $showLocalCursor)
+            Toggle("Low-latency video (restart to apply)", isOn: $lowLatencyVideo)
             LabeledContent("Trackpad scroll speed") {
                 // Fewer points per wheel tick = faster scrolling.
                 Slider(value: $scrollPointsPerTick, in: 2...40) { EmptyView() }
