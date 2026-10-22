@@ -34,6 +34,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 struct ContentView: View {
     @EnvironmentObject var state: AppState
     @State private var fullScreen = false
+    @State private var showWindowButtons = false
+    @AppStorage(Settings.minimalFrame) private var minimalFrame = true
+    @AppStorage(Settings.showStatusBar) private var showStatusBar = false
+
+    /// Width of the frame around the video in minimal mode.
+    static let framePadding: CGFloat = 6
+    private var framed: Bool { minimalFrame && !fullScreen }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -41,11 +48,23 @@ struct ContentView: View {
                 ViewerRepresentable(video: state.video, input: state.input, link: state.link)
                 OverlayHUD()
             }
-            if !fullScreen {
+            .clipShape(RoundedRectangle(cornerRadius: framed ? 8 : 0, style: .continuous))
+            .padding(framed ? Self.framePadding : 0)
+            if showStatusBar && !fullScreen {
                 StatusBarView()
             }
         }
-        .background(Color.black)
+        .background(framed ? Color(nsColor: .windowBackgroundColor) : Color.black)
+        .ignoresSafeArea()
+        .background(WindowChrome(minimal: framed, showButtons: showWindowButtons || !framed))
+        .onContinuousHover { phase in
+            // Window buttons appear when the pointer nears the top-left corner and input is free.
+            if case .active(let p) = phase {
+                showWindowButtons = !state.input.isCaptured && p.y < 40 && p.x < 120
+            } else {
+                showWindowButtons = false
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didEnterFullScreenNotification)) { _ in
             fullScreen = true
         }
@@ -105,14 +124,34 @@ struct ShdongCommands: Commands {
         guard let w = window else { return }
         let scale = w.backingScaleFactor
         let size = state.video.videoSize
-        w.setContentSize(NSSize(width: size.width / scale, height: size.height / scale + StatusBarView.height))
+        ViewerView.current?.fitWindow(videoWidth: size.width / scale)
     }
 
     /// Removes letterbox bars at the current width.
     private func fitWindow() {
-        guard let w = window else { return }
-        let size = state.video.videoSize
-        let width = w.contentLayoutRect.width
-        w.setContentSize(NSSize(width: width, height: width * size.height / size.width + StatusBarView.height))
+        ViewerView.current?.fitWindow()
+    }
+}
+
+/// Applies the minimal-frame look to the hosting window: no title, content under the title bar,
+/// window buttons only while `showButtons`.
+struct WindowChrome: NSViewRepresentable {
+    let minimal: Bool
+    let showButtons: Bool
+
+    func makeNSView(context: Context) -> NSView { NSView() }
+
+    func updateNSView(_ v: NSView, context: Context) {
+        DispatchQueue.main.async {
+            guard let w = v.window else { return }
+            w.titlebarAppearsTransparent = minimal
+            w.titleVisibility = minimal ? .hidden : .visible
+            if minimal { w.styleMask.insert(.fullSizeContentView) } else { w.styleMask.remove(.fullSizeContentView) }
+            w.isMovableByWindowBackground = minimal
+            for b in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
+                w.standardWindowButton(b)?.animator().alphaValue = showButtons ? 1 : 0
+            }
+            ViewerView.current?.needsLayout = true
+        }
     }
 }

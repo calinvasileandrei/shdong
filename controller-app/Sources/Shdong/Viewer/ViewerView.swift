@@ -4,6 +4,9 @@ import SwiftUI
 
 /// NSView that shows the video layer and turns mouse events over it into absolute mouse frames.
 final class ViewerView: NSView {
+    /// The viewer in the main window, for menu commands that resize it.
+    static weak var current: ViewerView?
+
     var link: BridgeLink?
     var input: InputCapture?
     var videoLayer: CALayer? {
@@ -48,16 +51,56 @@ final class ViewerView: NSView {
         CATransaction.setDisableActions(true)
         videoLayer?.frame = bounds
         CATransaction.commit()
+        applyAspectRatio()
+        // Snap after toggles and at launch; during a drag the aspect ratio keeps it close.
+        if !inLiveResize { fitWindow() }
+    }
+
+    override func viewDidEndLiveResize() {
+        super.viewDidEndLiveResize()
+        fitWindow()
+    }
+
+    // The frame around the viewer drags the window; the viewer itself never does.
+    override var mouseDownCanMoveWindow: Bool { false }
+
+    /// Window content size minus this view: frame, status bar, title bar.
+    private func chrome(_ window: NSWindow) -> CGSize {
+        let content = window.contentRect(forFrameRect: window.frame).size
+        return CGSize(width: content.width - bounds.width, height: content.height - bounds.height)
+    }
+
+    /// Resizes the window so the video fills this view exactly (no letterbox bars),
+    /// keeping the top-left corner. `videoWidth` defaults to the current width.
+    func fitWindow(videoWidth: CGFloat? = nil) {
+        guard let window, !window.styleMask.contains(.fullScreen),
+              videoSize.width > 0, bounds.width > 50, bounds.height > 50 else { return }
+        let c = chrome(window)
+        let width = videoWidth ?? bounds.width
+        let target = CGSize(width: (width + c.width).rounded(),
+                            height: (width * videoSize.height / videoSize.width + c.height).rounded())
+        var frame = window.frame
+        let current = window.contentRect(forFrameRect: frame).size
+        guard abs(current.width - target.width) > 0.5 || abs(current.height - target.height) > 0.5 else { return }
+        let newFrame = window.frameRect(forContentRect: NSRect(origin: .zero, size: target))
+        frame.origin.y += frame.height - newFrame.height
+        frame.size = newFrame.size
+        window.setFrame(frame, display: true)
     }
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
+        if window != nil { Self.current = self }
         applyAspectRatio()
     }
 
+    /// Locks the window's aspect so that, at the current size, the video area is exactly
+    /// `videoSize`'s ratio once the fixed chrome around it is accounted for.
     private func applyAspectRatio() {
-        guard let window, videoSize.width > 0, videoSize.height > 0 else { return }
-        window.contentAspectRatio = videoSize
+        guard let window, videoSize.width > 0, videoSize.height > 0, bounds.width > 50 else { return }
+        let c = chrome(window)
+        window.contentAspectRatio = NSSize(width: bounds.width + c.width,
+                                           height: bounds.width * videoSize.height / videoSize.width + c.height)
     }
 
     override func updateTrackingAreas() {

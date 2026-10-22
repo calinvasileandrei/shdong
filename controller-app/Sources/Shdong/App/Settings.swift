@@ -8,6 +8,9 @@ enum Settings {
     static let showLocalCursor = "showLocalCursor"
     /// Read at launch; changing it needs a restart.
     static let lowLatencyVideo = "lowLatencyVideo"
+    /// Thin frame around the video, no title bar (window buttons show on hover).
+    static let minimalFrame = "minimalFrame"
+    static let showStatusBar = "showStatusBar"
 
     static func registerDefaults() {
         UserDefaults.standard.register(defaults: [
@@ -16,6 +19,8 @@ enum Settings {
             autoCaptureOnClick: true,
             showLocalCursor: false,
             lowLatencyVideo: true,
+            minimalFrame: true,
+            showStatusBar: false,
         ])
     }
 
