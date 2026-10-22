@@ -1,13 +1,14 @@
 #!/bin/sh
 # Builds Shdong.app from the SwiftPM executable and signs it (ad-hoc unless SIGN_ID is set).
 #   scripts/bundle.sh            → build/Shdong.app (release, universal arm64 + x86_64)
+#   ARCHS=arm64 scripts/bundle.sh → Apple Silicon only
 #   SIGN_ID="Developer ID Application: …" scripts/bundle.sh
 set -eu
 cd "$(dirname "$0")/.."
 CONFIG=${CONFIG:-release}
 # One build per architecture, merged with lipo (works with only the Command Line Tools).
 BINS=""
-for ARCH in arm64 x86_64; do
+for ARCH in ${ARCHS:-arm64 x86_64}; do
   TRIPLE="$ARCH-apple-macosx13.0"
   SCRATCH=".build/$ARCH"  # separate cache per arch; a shared one breaks on rebuild
   swift build -c "$CONFIG" --triple "$TRIPLE" --scratch-path "$SCRATCH" --product Shdong
