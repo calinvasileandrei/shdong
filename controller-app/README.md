@@ -20,7 +20,7 @@ window is focused, so no Accessibility permission is needed; shortcuts macOS han
 Install without admin rights (no Gatekeeper prompt, since curl doesn't quarantine):
 
 ```sh
-mkdir -p ~/Applications && curl -L https://github.com/calinvasileandrei/shdong/releases/download/v1.0/Shdong-1.0-macOS.zip | ditto -x -k - ~/Applications && open ~/Applications/Shdong.app
+mkdir -p ~/Applications && curl -L https://github.com/calinvasileandrei/shdong/releases/download/v1.1/Shdong-1.1-macOS.zip | ditto -x -k - ~/Applications && open ~/Applications/Shdong.app
 ```
 
 ## Without hardware

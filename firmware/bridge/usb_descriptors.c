@@ -5,8 +5,8 @@
 // pid.codes test VID/PID: fine for development, replace before shipping.
 #define SHD_USB_VID          0x1209
 #define SHD_USB_PID          0x0002
-#define SHD_USB_MANUFACTURER "shdong"
-#define SHD_USB_PRODUCT      "shdong bridge"
+#define SHD_USB_MANUFACTURER "Generic"
+#define SHD_USB_PRODUCT      "USB Keyboard and Mouse"
 
 //--------------------------------------------------------------------
 // Device descriptor (IAD, required for CDC)
