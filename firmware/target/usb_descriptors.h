@@ -4,9 +4,10 @@
 enum {
     HID_INST_KEYBOARD = 0,
     HID_INST_MOUSE    = 1,
+    HID_INST_ABS      = 2,
 };
 
-// Report IDs on HID_INST_MOUSE. The keyboard interface has no report IDs (boot protocol).
+// Report IDs on HID_INST_MOUSE and HID_INST_ABS. The keyboard interface has no report IDs (boot protocol).
 enum {
     RID_MOUSE_ABS = 1,
     RID_MOUSE_REL = 2,

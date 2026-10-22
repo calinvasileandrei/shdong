@@ -137,12 +137,12 @@ static void on_mouse_abs(const uint8_t *p) {
 
     // Coalesce plain moves into the last queued move with the same buttons
     pending_report_t *last = queue_last();
-    if (last && last->instance == HID_INST_MOUSE && last->report_id == RID_MOUSE_ABS &&
+    if (last && last->instance == HID_INST_ABS &&
         last->data[0] == r[0] && !last->data[5] && !last->data[6] && !r[5] && !r[6]) {
         memcpy(last->data, r, sizeof(r));
         return;
     }
-    queue_push(HID_INST_MOUSE, RID_MOUSE_ABS, r, sizeof(r));
+    queue_push(HID_INST_ABS, RID_MOUSE_ABS, r, sizeof(r));
 }
 
 static void on_frame(const shd_frame_t *f) {
